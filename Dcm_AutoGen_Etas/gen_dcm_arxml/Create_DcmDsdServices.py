@@ -15,9 +15,9 @@ SESSION_MAP = [
     ("Extended Session", "EXTENDED_DIAGNOSTIC_SESSION"),
 ]
 SECURITY_MAP = [
-    ("App Unlocked", "Unlocked_L1"),
-    ("Boot Unlocked", "Unlocked_L3"),
-    ("iMotion Unlocked", "Unlocked_L49"),
+    ("App Unlocked", "Unlocked_App"),
+    ("Boot Unlocked", "Unlocked_Boot"),
+    ("iMotion Unlocked", "Unlocked_Develop"),
 ]
 
 
