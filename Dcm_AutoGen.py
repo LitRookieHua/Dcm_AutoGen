@@ -3,7 +3,8 @@
 """Dcm_AutoGen - J6 ETAS Dcm 诊断生成统一入口 (一键流程).
 
 流程 (按 configs/common.json 功能开关启停, 顺序即执行顺序):
-  gen_dcm_arxml     问卷 Service List -> 重建 J6B_Dcm_EcucValues.arxml 服务表
+  gen_dcm_arxml     问卷 Service List + DcmDspSession/DcmDspSecurity 表 ->
+                    重建 J6B_Dcm_EcucValues.arxml 服务表及 DcmDsp 行容器
                     (Dcm_AutoGen_Etas/gen_dcm_arxml/Dcm_arxml_Script.py)
   gen_nrc_code      问卷 Service List -> 重建 ov_dia_notification.cpp NRC 检查
   gen_did_code      问卷 DID List -> DID 查找表/0x22/0x2E handler + version_did JSON
