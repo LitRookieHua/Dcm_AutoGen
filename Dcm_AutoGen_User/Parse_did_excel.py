@@ -31,10 +31,11 @@ DID_SOURCES = {"iMotionDid", "VersionDid", "NvmDid", "DynamicDid"}
 SESSION_COLS = [("Default Session", "DEFAULT"),
                 ("Programming Session", "PROGRAMMING"),
                 ("Extended Session", "EXTENDED")]
+# 内部位名须与 gen_did_code.SEC_ORDER 一致 (NORMAL_UNLOCK 等), 否则组合枚举会退化为 LOCK
 SEC_COLS = [("Locked", "LOCK"),
-            ("App Unlocked", "NORMAL"),
-            ("Boot Unlocked", "PROGRAMMING"),
-            ("iMotion Unlocked", "DEVELOPMENT")]
+            ("App Unlocked", "NORMAL_UNLOCK"),
+            ("Boot Unlocked", "PROGRAMMING_UNLOCK"),
+            ("iMotion Unlocked", "DEVELOPMENT_UNLOCK")]
 
 PERM_RE = re.compile(r"^22:\s*(Yes|No)\s+2E:\s*(Yes|No)$")
 SKIP_REMARK_KEYWORD = "Docan不实现"

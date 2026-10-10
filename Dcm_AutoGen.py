@@ -108,20 +108,34 @@ def load_feature_config(config: str):
 # ---------------------------------------------------------------- 路径发现
 
 def resolve_repo_paths(repo: Path, config: str):
-    """由 --repo + --config 推导目标路径 (glob, 无硬编码)."""
+    """由 --repo + --config 推导目标路径 (glob, 无硬编码).
+
+    兼容两种仓库布局:
+      旧 (mcu_app_j6):   cpj_*/autosar/<变体>/BswRta, dia_cfg/var/src/vehicle/<变体>
+      v2 (mcu_app_j6_v2): cpj_*/veh_<变体>/autosar/BswRta, veh_<变体>/dia_cfg/src
+    """
+    cfg = config.lower()
     hits = sorted(repo.glob("cpj_*/autosar/%s/BswRta" % config))
+    vd_hits = sorted(repo.glob("cpj_*/dia_cfg/var/src/vehicle/%s" % config))
+    v2_hits = [p for p in sorted(repo.glob("cpj_*/*/autosar/BswRta"))
+               if p.parents[1].name.lower() in (cfg, "veh_" + cfg)]
+    if v2_hits:
+        hits += v2_hits
+        vd_hits += [p.parents[1] / "dia_cfg" / "src" for p in v2_hits]
+    hits = sorted(set(hits))
+    vd_hits = sorted(set(vd_hits))
     if len(hits) != 1:
-        fail("cpj_*/autosar/%s/BswRta 匹配 %d 个 (需恰好 1): %s"
-             % (config, len(hits), [str(h) for h in hits]))
+        fail("BswRta 匹配 %d 个 (需恰好 1): %s"
+             % (len(hits), [str(h) for h in hits]))
     bswrta = hits[0].resolve()
     arxml_hits = [p for p in sorted(bswrta.glob("ecu_config/bsw/gen/*Dcm_EcucValues.arxml"))
                   if not p.name.startswith("RTA_BIP_")]
     if len(arxml_hits) != 1:
         fail("ecu_config/bsw/gen/*Dcm_EcucValues.arxml (排除 RTA_BIP_) 匹配 %d 个 (需恰好 1)"
              % len(arxml_hits))
-    vd_hits = sorted(repo.glob("cpj_*/dia_cfg/var/src/vehicle/%s" % config))
     if len(vd_hits) != 1:
-        fail("cpj_*/dia_cfg/var/src/vehicle/%s 匹配 %d 个 (需恰好 1)" % (config, len(vd_hits)))
+        fail("dia_cfg 车辆代码目录匹配 %d 个 (需恰好 1): %s"
+             % (len(vd_hits), [str(h) for h in vd_hits]))
     vehicle_dir = vd_hits[0].resolve()
     return SimpleNamespace(
         repo=repo,

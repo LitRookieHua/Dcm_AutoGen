@@ -40,12 +40,12 @@ SESSION_MACRO = {"DEFAULT": "DEFAULT_SESSION",
                  "EXTENDED": "EXTENDED_SESSION"}
 SESSION_ORDER = ["DEFAULT", "PROGRAMMING", "EXTENDED"]
 
-# 安全列 -> 安全等级表达式 (ESecurityLevel 枚举无 _17, Boot 用字面量, 同 did_lookup_table 的 case 17)
+# 安全列 -> 安全等级表达式 (DcmDspSecurityLevel 按 27 子功能配对: seed/key=2n-1/2n -> level n;
+# J02: App 0x03/0x04 -> E_SECURITY_LEVEL_2, Boot 0x11/0x12 -> E_SECURITY_LEVEL_9)
 SEC_LEVEL = {"LOCK": "idia::E_SECURITY_LEVEL_NULL",
-             "APP": "idia::E_SECURITY_LEVEL_1",
-             "BOOT": "17u",
+             "APP": "idia::E_SECURITY_LEVEL_2",
+             "BOOT": "idia::E_SECURITY_LEVEL_9",
              "IMOTION": "idia::E_SECURITY_LEVEL_49"}
-SEC_COMMENT = {"BOOT": " /* Boot Unlocked, ESecurityLevel 枚举无 _17 */"}
 SEC_ORDER = ["LOCK", "APP", "BOOT", "IMOTION"]
 
 IDENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
@@ -75,8 +75,7 @@ def _sec_exprs(sec_set):
     out = []
     for part in SEC_ORDER:
         if part in sec_set:
-            expr = SEC_LEVEL[part]
-            out.append(expr + SEC_COMMENT.get(part, ""))
+            out.append(SEC_LEVEL[part])
     return out
 
 
@@ -411,7 +410,15 @@ def main():
     if not vd.is_dir():
         _fail("vehicle_dir 不存在: %s" % vd)
     cpp = vd / "0x31" / "ov_dia_0x31_routine_by_identifier_handler.cpp"
-    hpp = vd.parents[3] / "inc" / "ov_dia" / "0x31" / "ov_dia_0x31_routine_by_identifier_handler.hpp"
+    if (vd.parent / "inc" / "ov_dia").is_dir():
+        # v2 布局: vehicle_dir = cpj_*/veh_<变体>/dia_cfg/src, hpp 同级 dia_cfg/inc
+        # (0x31 hpp 已于 2026-09-30 从 cpj 级迁至 veh 级, 同 0x22/0x2e)
+        hpp = vd.parent / "inc" / "ov_dia" / "0x31" / \
+            "ov_dia_0x31_routine_by_identifier_handler.hpp"
+    else:
+        # 旧布局: hpp 在 cpj_*/dia_cfg/inc/ov_dia/0x31
+        hpp = vd.parents[3] / "inc" / "ov_dia" / "0x31" / \
+            "ov_dia_0x31_routine_by_identifier_handler.hpp"
     for name, p in [("0x31 cpp", cpp), ("0x31 hpp", hpp)]:
         if not p.is_file():
             _fail("目标文件不存在 (%s): %s" % (name, p))

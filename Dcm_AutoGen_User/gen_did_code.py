@@ -367,8 +367,16 @@ def _derive_paths(vehicle_dir, pdm_cfg_arg):
     if not vd.is_dir():
         raise RuntimeError("vehicle_dir 不存在: %s" % vd)
     variant = vd.name
-    var_dir = vd.parents[2]  # var/src/vehicle/<variant> -> var
-    inc_dir = var_dir / "inc" / "vehicle" / variant
+    if (vd.parent / "inc" / "ov_dia").is_dir():
+        # v2 布局: vehicle_dir = cpj_*/veh_<变体>/dia_cfg/src
+        # inc 在 dia_cfg/inc, pdm_cfg 在 veh_<变体>/pdm_cfg
+        inc_dir = vd.parent / "inc"
+        pdm_default = vd.parents[1] / "pdm_cfg" / "inc" / "pdm_cfg" / "pdm_cfg.h"
+    else:
+        # 旧布局: vehicle_dir = cpj_*/dia_cfg/var/src/vehicle/<变体>
+        var_dir = vd.parents[2]  # var/src/vehicle/<variant> -> var
+        inc_dir = var_dir / "inc" / "vehicle" / variant
+        pdm_default = vd.parents[4] / "pdm_cfg" / variant / "inc" / "pdm_cfg" / "pdm_cfg.h"
 
     paths = {
         "lookup_cpp": vd / "did_lookup_table" / "ov_dia_did_lookup_table.cpp",
@@ -381,8 +389,7 @@ def _derive_paths(vehicle_dir, pdm_cfg_arg):
         if not p.is_file():
             raise RuntimeError("目标文件不存在 (%s): %s" % (name, p))
 
-    pdm_cfg = Path(pdm_cfg_arg) if pdm_cfg_arg else \
-        vd.parents[4] / "pdm_cfg" / variant / "inc" / "pdm_cfg" / "pdm_cfg.h"
+    pdm_cfg = Path(pdm_cfg_arg) if pdm_cfg_arg else pdm_default
     return paths, pdm_cfg
 
 
